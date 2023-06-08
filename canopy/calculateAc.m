@@ -76,7 +76,7 @@ NpArea_ind = 15;
 Kt_ind = 16;
 Kr_ind = 17;
 facetS_ind = 18;
-WholeDayTimePoints = 3; % NEED TO BE EDITED
+WholeDayTimePoints = 3; % CAN BE EDITED
 TotalPAR_ind = (18+7):7:(18+7*WholeDayTimePoints);
 
 %%

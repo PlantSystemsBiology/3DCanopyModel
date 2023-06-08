@@ -19,9 +19,9 @@ visited(sb)=1;
 u=sb;
 parent(1:n) = 0;
 
-for i = 1: n-1 % 重复n-1次
-    id=find(visited==0); %当前没有访问过的点
-    for v = id %便利每个未访问过的点
+for i = 1: n-1 % repeat n-1 times
+    id=find(visited==0); %
+    for v = id %
         if  a(u, v) + distance(u) < distance(v)
             distance(v) = distance(u) + a(u, v);
             parent(v) = u;

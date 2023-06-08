@@ -102,7 +102,7 @@ for i=1:leafNum
 
         end
 
-        % do the adjustment，这里是先直接变换，然后计算新的模型的叶长宽角度，然后再次变换，共3次。趋近于要变换的比例
+
 %         disp('leaf base: 1')
 %         leafBase
 %         disp('max leaf xyz: ')

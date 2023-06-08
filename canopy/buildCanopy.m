@@ -1,17 +1,18 @@
-% script 2
+% build canopy function
 % Qingfeng, CEMPS, this script build a canopy from the CM single plant
 % model files, four single plants are used to build a canopy.
-% X -> north, Y -> west, Z -> up
+% canopy direction: X -> north, Y -> west, Z -> up
 
-% SPADcultivarIds = [1,1] 下层，上层的。1表示W64A，2表示A619
+% cultivar ID : 1 for W64A，2 for A619
+% usage: buildCanopy('CM_W64A_45_A619_LA_', 4, 'CM_W64A_45_A619_LA-rep1.txt', 'W64A');
 
 function buildCanopy(singlePlantMesh_prefix, meshModelNum, outputCMfilename, SPADcultivarIds, ChlAdj, SPADstage, rand_seed)
-% buildCanopy('CM_W64A_45_A619_LA_', 4, 'CM_W64A_45_A619_LA-rep1.txt', 'W64A');
-rng(rand_seed);
-DASnew = [31, 38, 45, 52, 59]; % Qingfeng's DAS
-CULTIVAR = ["W64A","A619"]; % two cultivars
 
-%  % total plant number
+rng(rand_seed); % use defined rand seed, which is the number of replicate.
+DASnew = [31, 38, 45, 52, 59]; % DAS, days after sowing
+CULTIVAR = ["W64A","A619"]; % two cultivars' name
+
+% total plant number setting
 % xNum = 18; % 13 plants/line
 % xInterval = 10; % 15 cm plant distance between neighber plants
 xNum = 13; % 13 plants/line
@@ -66,7 +67,7 @@ A619_SPAD_Measured =[
     31.5 	34.2 	42.8 	46.7 	49.6 % assume if more leaf, the same as top 1st leaf SPAD
     31.5 	34.2 	42.8 	46.7 	49.6 % assume if more leaf, the same as top 1st leaf SPAD
     31.5 	34.2 	42.8 	46.7 	49.6 % assume if more leaf, the same as top 1st leaf SPAD
-    ]; %                   （这个56.7改为了46.7）
+    ]; %                   
 
 SPADcultivar = zeros(20,1);
 
@@ -76,10 +77,10 @@ SPAD_Measured = zeros(20,5); %init empty matrix
 
 % bottom layer 1-4 leaves from bottom
 if SPADcultivarIds(1) == 1 
-    SPAD_Measured(1:4,:) = W64A_SPAD_Measured(1:4,:).*ChlAdj(1); % .*ChlAdj(1)是bo 的SPAD调节系数
+    SPAD_Measured(1:4,:) = W64A_SPAD_Measured(1:4,:).*ChlAdj(1); % .*ChlAdj(1) for bottom layer leaves' SPAD adjust rate
     SPADcultivar(1:4)= 1;
 elseif SPADcultivarIds(1) == 2
-    SPAD_Measured(1:4,:) = A619_SPAD_Measured(1:4,:).*ChlAdj(1); % .*ChlAdj(1)是bo 的SPAD调节系数
+    SPAD_Measured(1:4,:) = A619_SPAD_Measured(1:4,:).*ChlAdj(1); % .*ChlAdj(1) for bottom layer leaves' SPAD adjust rate
     SPADcultivar(1:4)= 2;
 else
     error('SPAD data for input cultivar not exist');
@@ -87,10 +88,10 @@ end
 
 % up layer, others, 5 to top leaves
 if SPADcultivarIds(2) == 1
-    SPAD_Measured(5:end,:) = W64A_SPAD_Measured(5:end,:).*ChlAdj(2); % .*ChlAdj(2)是up 的SPAD调节系数;
+    SPAD_Measured(5:end,:) = W64A_SPAD_Measured(5:end,:).*ChlAdj(2); % .*ChlAdj(2) for up layer leaves' SPAD adjust rate
     SPADcultivar(5:end)= 1;
 elseif SPADcultivarIds(2) == 2
-    SPAD_Measured(5:end,:) = A619_SPAD_Measured(5:end,:).*ChlAdj(2); % .*ChlAdj(2)是up 的SPAD调节系数;
+    SPAD_Measured(5:end,:) = A619_SPAD_Measured(5:end,:).*ChlAdj(2); % .*ChlAdj(2) for up layer leaves' SPAD adjust rate
     SPADcultivar(5:end)= 2;
 else
     error('SPAD data for input cultivar not exist');
@@ -142,11 +143,11 @@ for y = 1:yNum
         end
 
         % ROTATION of plants random to any orientation
-        [X, Y, Z] = convertColumn9to3 (onePlant(:,6:14)); % 变换数据结构为3列
-        [theta,r,h] = cart2pol(X,Y,Z);              % Z 方向为轴,  转换为柱坐标系, Z 方向为轴----------------------
-        theta = theta+rand*2*pi;                         % 叶子沿着茎秆旋转到beta度到某一方向
-        [X,Y,Z] = pol2cart(theta,r,h); %  convert to rectangular cartesian coordinate system -转换回笛卡尔坐标系---------------------------
-        onePlant(:,6:14) = convertColumn3to9 ([X,Y,Z]); % 数据结构转换回9列
+        [X, Y, Z] = convertColumn9to3 (onePlant(:,6:14)); % change data matrix to 3 columns
+        [theta,r,h] = cart2pol(X,Y,Z);              % rotate axis system by Z-axis
+        theta = theta+rand*2*pi;                    % rotate leaf by stems to beta degree
+        [X,Y,Z] = pol2cart(theta,r,h); %  convert to rectangular cartesian coordinate system ----------------------------
+        onePlant(:,6:14) = convertColumn3to9 ([X,Y,Z]); % change data matrix to 9 columns
 
         % SET data format digitals
         onePlant(:,6:14) = roundn(onePlant(:,6:14),-3); % set to 0.001 accurancy

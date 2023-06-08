@@ -145,20 +145,20 @@ for i=1:PointsNum-1
     end
 end
 
-%计算矩阵中每行前k个值的位置并赋值（先按大小排列）
+% calcualte the first k values in each row and set values (from big to small)
 W1=zeros(m,m);
-k=500; %  Qingfeng tested, 数值越大越能把两个点连接起来，不会断开
+k=500; % a setting for connecting points. 
 for i=1:m
     A=D(i,:);
-    t=sort(A(:));%对每行进行排序后构成一个从小到大有序的列向量
+    t=sort(A(:));% from small to big values. 
     k_=k;
     if(length(t)<k)
         k_=length(t);
     end
-    [~,col]=find(A<=t(k_),k_);%找出每行前K个最小数的位置
+    [~,col]=find(A<=t(k_),k_); % find the first k smallest values in each row. 
     for j=1:k_
         c=col(1,j);
-        W1(i,c)=D(i,c); %W1(i,c)=1;%给k近邻赋值为距离
+        W1(i,c)=D(i,c); % W1(i,c)=1;% set the k neighbors as distance. 
     end
 end
 for i=1:m
@@ -205,7 +205,7 @@ if leafLen_temp == Inf
     while leafLen_temp == Inf
         LeafMaxYPoint_idx = I(YMaxPtInd);
         [leafLen_temp,LeafLenPath_temp] = mydijkstra(W1, leafBasePoint_idx, LeafMaxYPoint_idx);  % get the maximal distance from stem
-        YMaxPtInd = YMaxPtInd + 5; %每次扔掉5个点，再选择一个新的叶尖部，根据Y的绝对值最大值
+        YMaxPtInd = YMaxPtInd + 5; % reduce 5 points each time, then, find a new leaf tip according to the maximal Y. 
     end
 end
 

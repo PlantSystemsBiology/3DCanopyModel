@@ -1,13 +1,14 @@
 
 
-% 从Vector模型中提取LL，LW，LC，LA，LN等5个参数，保存到csv文件中
-% 保存的格式包括植株编号，叶片编号，上下层编号等
+% extract LL，LW，LC，LA，LN etc five parameters from the Vector model. 
+% Save results to a .csv file. 
+% the format of output file include plant ID, leaf ID, layer ID. 
 
 function output = extractTraitFromVectorModel(vectorModel)
 
-LN = max(vectorModel(:,10)); % 第10列是叶片编号，0是stem，最大值为叶片数
+LN = max(vectorModel(:,10)); % the 10th column is leaf ID, 0 for stem. 
 
-output = zeros(LN,7); % 第1是叶片编号，第2列是上下层，3-7是LL，LW, LC, LA, LN
+output = zeros(LN,7); % the 1st is leaf ID, column 2 is up, bottom layer ID, the 3-7th columns are LL，LW, LC, LA, LN
 output(:,7) = LN;
 
 for i=1:LN
@@ -19,25 +20,25 @@ for i=1:LN
     vtu = vm(:,4:6);
     vtb = vm(:,7:9);
 
-    output(i,1) = i; % 叶片编号
-    output(i,2) = vm(1,11); % 上下层
+    output(i,1) = i; % leaf ID
+    output(i,2) = vm(1,11); % layer
     output(i,3) = sum(sqrt(sum(vt.^2, 2))); % LL
 
     leafWidthList = sqrt(sum(vtu.^2, 2)) + sqrt(sum(vtb.^2, 2));
-    [B, I] = sort(leafWidthList,'descend'); % 降序排列
+    [B, I] = sort(leafWidthList,'descend'); % sort
 
-    leafWidthMax = B(1); % 默认是最大值，
+    leafWidthMax = B(1); % default value is the maximal 
     for x=1:9
         if x>=length(B)
             break;
         end
-        if B(x)/B(x+1)<1.1 %如果最大值大于第二大的值超过10%，则认为是异常值，继续检测下一个，并设置为叶宽
+        if B(x)/B(x+1)<1.1 
             leafWidthMax = B(x);
         end
     end
     output(i,4) = leafWidthMax;
 
-    % 转换为点云
+    % convert to point cloud
     pt = zeros(row+1, 3);
     pt(1,:) = [0,0,0]; % leaf base point adjusted to 0 before.
 
@@ -48,7 +49,7 @@ for i=1:LN
     ptu = pt(1:row,:) + vtu(:, 1:3);
     ptb = pt(1:row,:) + vtb(:, 1:3);
 
-    % 计算叶片角度
+    % calculate leaf angle
     O_Pt = pt(1,1:3);
 %     O_Pt
     T_Pt = pt(round(row/3),1:3);
@@ -62,7 +63,7 @@ for i=1:LN
     % leaf curvature
     turnAngleSave = zeros(row,1);
     for j=1:row
-        % 中线点，上边点，下边点分为三个数组，同步的旋转
+        % mid line, and two leaf edages, rotate together. 
         O_Pt = pt(j,1:3);
         T_Pt = pt(j+1,1:3);
         Pp = [T_Pt(:,1:2) O_Pt(:,3)];
@@ -74,12 +75,12 @@ for i=1:LN
         else
             turnAngleDirection = -1;
         end
-        pt(j:row+1,1:3) = leaf_pos_transfer(pt(j:row+1,1:3), O_Pt, 1, 1, turnAngle, rotationDegree, turnAngleDirection); %旋转
-        ptu(j:row,1:3)  = leaf_pos_transfer(ptu(j:row,1:3), O_Pt, 1, 1, turnAngle, rotationDegree, turnAngleDirection); %旋转
-        ptb(j:row,1:3)  = leaf_pos_transfer(ptb(j:row,1:3), O_Pt, 1, 1, turnAngle, rotationDegree, turnAngleDirection); %旋转
+        pt(j:row+1,1:3) = leaf_pos_transfer(pt(j:row+1,1:3), O_Pt, 1, 1, turnAngle, rotationDegree, turnAngleDirection); % rotate
+        ptu(j:row,1:3)  = leaf_pos_transfer(ptu(j:row,1:3), O_Pt, 1, 1, turnAngle, rotationDegree, turnAngleDirection); % rotate
+        ptb(j:row,1:3)  = leaf_pos_transfer(ptb(j:row,1:3), O_Pt, 1, 1, turnAngle, rotationDegree, turnAngleDirection); % rotate
     end
-    % 然后，按照给定的弯曲LC弯折叶片1/3到3/3段，0-1/3段不变。
-    output(i,5) = sum(turnAngleSave(round(row/3):end,:)); % 计算1/3（含）到3/3段的总的弯曲度，LC
+    % then, turn the leaf from 1/3 to 3/3 leaf segement, the 0-1/3 part not change.
+    output(i,5) = sum(turnAngleSave(round(row/3):end,:)); % calculate leaf curvature from 1/3 to 3/3. LC
     
 
 end

@@ -1,11 +1,11 @@
 function [outputVectorModel, outputMeshModel] = leafVectorModel(stemPtCloud, leafPtCloud, segDistance)
 
-% leafMeshModel, 将叶片点云，识别中轴线，并且切片法检测叶边缘点，再构建叶三角形面元
+% leafMeshModel
 % Qingfeng,2022-12-13
 % Input format stemPtCloud and leafPtCloud are [X, Y, Z];
 outputVectorModel = zeros(0,9);
 % step 1
-% 计算叶片中轴线LeafLenPath
+% calculate leaf mid line, LeafLenPath
 [leafLength,leafAngle,leaf_base_idx,LeafLenPath,LeafWidthPath,leafWidth] = leaflength_leafangle(stemPtCloud,leafPtCloud,1,0);
 
 if isempty(LeafLenPath)
@@ -13,71 +13,71 @@ if isempty(LeafLenPath)
 end
 X1 = leafPtCloud(:,1); Y1=leafPtCloud(:,2); Z1=leafPtCloud(:,3);
 % step 2
-% 计算叶片边缘线
+% calcualte the leaf edages.
 [leafEdge_minimalX_idx, leafEdge_maximalX_idx] = find_leaf_edges(X1,Y1,Z1,LeafLenPath);
 
-% 依据 segDistance的距离，分割叶片成段，然后重新构建叶片模型
+% according to segDistance, divide leaf into segements. then, remodel the
+% leaf. 
 N = length(LeafLenPath); % 1, 69
 % size(leafEdge_minimalX_idx): 69, 1
 % size(leafEdge_maximalX_idx): 69, 1
 
-vectorModel = zeros(0,9); % 初始化向量模型矩阵
+vectorModel = zeros(0,9); % initalize the matrix
 
-% 下边的代码段是直接构建三角mesh model的
-triangles = zeros(0,9); %初始化三角面元存储矩阵
+% directly construct triange mesh model：
+triangles = zeros(0,9); % initalize the matrix
 
 
-mP_1 = zeros(1,3); % 初始化点变量
+mP_1 = zeros(1,3); % initalize the points
 ePu_1 = mP_1;
 ePb_1 = mP_1;
 mP_2 = zeros(1,3);
 ePu_2 = mP_2;
 ePb_2 = mP_2;
 
-i = 1; % 先给后拖点赋值
-mP_2 = leafPtCloud(LeafLenPath(i),:); % 中间的点
-ePu_2 = leafPtCloud(leafEdge_maximalX_idx(i),:); % 边点（up）
-ePb_2 = leafPtCloud(leafEdge_minimalX_idx(i),:); % 边点（botom）
+i = 1; % first, set values to the lagging point
+mP_2 = leafPtCloud(LeafLenPath(i),:); % middle point
+ePu_2 = leafPtCloud(leafEdge_maximalX_idx(i),:); % leaf edge point, up
+ePb_2 = leafPtCloud(leafEdge_minimalX_idx(i),:); % leaf edge point, botom
 
-% 叶基部点的坐标
-leafBase = [mP_2, mP_2, mP_2]; % 一个点，一行9个位置，所以重复3次。
-vectorModel = [vectorModel; leafBase]; % 将叶基部点加入到第一行。
+% leaf base point
+leafBase = [mP_2, mP_2, mP_2]; % one point, includes 9 values
+vectorModel = [vectorModel; leafBase]; % add the leaf base into first row
 
 for i=2:N
 
-    mP_1 = leafPtCloud(LeafLenPath(i),:); % 前导点 从2到N依次前进
+    mP_1 = leafPtCloud(LeafLenPath(i),:); % leading point, from 2 to N, 
     ePu_1 = leafPtCloud(leafEdge_maximalX_idx(i),:);
     ePb_1 = leafPtCloud(leafEdge_minimalX_idx(i),:);
 
     if norm(mP_1-mP_2) >= segDistance % 
 
-        % 达到阈值可以画一个段
-        vec1 = mP_1 - mP_2; % 中线的向量
-        vec2 = ePu_2 - mP_2; % 上边的向量
-        vec3 = ePb_2 - mP_2; % 下边的向量
-        vectorGroup = [vec1, vec2, vec3]; % 三个向量
+        % draw a segment
+        vec1 = mP_1 - mP_2; % vector for mid line
+        vec2 = ePu_2 - mP_2; % vector for edge
+        vec3 = ePb_2 - mP_2; % vector for edge
+        vectorGroup = [vec1, vec2, vec3]; % three vectors
         vectorModel = [vectorModel; vectorGroup];
 
-%         下边的代码段是直接构建三角mesh model的
+%         direclty construct mesh model
         tri1 = [ePu_2, mP_2, mP_1];
         tri2 = [mP_2, ePb_2, mP_1];
         tri3 = [ePu_2, mP_1, ePu_1];
         tri4 = [ePb_2, ePb_1, mP_1];
         triangles = [triangles; tri1; tri2; tri3; tri4];
 
-        % update the 后拖点
+        % update the lagging point
         mP_2 = mP_1;
         ePu_2 = ePu_1;
         ePb_2 = ePb_1;
 
     elseif i==N % reach the last point
-        vec1 = mP_1 - mP_2; % 中线的向量
-        vec2 = ePu_2 - mP_2; % 上边的向量
-        vec3 = ePb_2 - mP_2; % 下边的向量
-        vectorGroup = [vec1, vec2, vec3]; % 三个向量
+        vec1 = mP_1 - mP_2; % 
+        vec2 = ePu_2 - mP_2; % 
+        vec3 = ePb_2 - mP_2; % 
+        vectorGroup = [vec1, vec2, vec3]; % 
         vectorModel = [vectorModel; vectorGroup];
 
-%         下边的代码段是直接构建三角mesh model的
         tri1 = [ePu_2, mP_2, mP_1];
         tri2 = [mP_2, ePb_2, mP_1];
         triangles = [triangles; tri1; tri2];
@@ -88,10 +88,10 @@ end
 % output
 outputVectorModel = vectorModel;
 
-% 下边的代码段是直接构建三角mesh model的
+
 outputMeshModel = triangles;
 
-% % plot 画图
+% % plot 
 % tri = triangles;
 % [row,col] = size(tri);
 % seq = [1:row]';

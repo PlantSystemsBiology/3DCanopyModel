@@ -1,5 +1,5 @@
 
-% 输出和 queryNum 一样长度的编号
+% The length of output targetIndex is the same as the input queryNum
 % used to map two vectors with different length
 % when compare different tiller numbers and leaf numbers
 function targetIndex = heteroMapping (targetNum, originNum)

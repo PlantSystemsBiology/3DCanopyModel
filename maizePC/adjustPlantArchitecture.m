@@ -1,7 +1,9 @@
 
-% ** --- 对一株植物调节叶片结构和叶片数 --- **
+% ** --- adjust plant architecture and leaf number --- **
 % input: plantModel
-% 是当前的单株植物的VectorModel,其中stem的部分是tris三角面元，叶片的部分是vector，1-9是结构，10是叶片ID，11是上下层flag
+% the input plant model is the VectorModel of a plant, in which the stem part is presented by triangle facets, leaves are presented by vector
+% column 1-9 is structure data, column 10 is leaf ID, column 11 is flag
+% （1,2）for bottom (1) layer or up (2) layer. 
 % adjustConfig
 % adjustConfig.leafWidthMultiply
 % adjustConfig.leafLengthMultiply
@@ -13,20 +15,20 @@ function PlantTris = adjustPlantArchitecture(plantModel, adjustConfig, removeSta
 
 PlantTris = zeros(0, 11);
 
-leafNum = max(plantModel(:,10));   % 总叶片数
-top1leaf = plantModel(plantModel(:,10) == leafNum, :); % 最上1叶片的数据
-stemHeight = min(top1leaf(1,3)); % 最上第一叶的叶基部高度，等于 stem length 茎长度
+leafNum = max(plantModel(:,10));   % total leaf number
+top1leaf = plantModel(plantModel(:,10) == leafNum, :); % data for the first leaf on top. 
+stemHeight = min(top1leaf(1,3)); % leaf base height of the first leaf on top. which is used as stem length.
 
-stemTris = plantModel(plantModel(:,10) == 0, :); % stem的面元，留存。
+stemTris = plantModel(plantModel(:,10) == 0, :); % stem facets。
 if removeStamen
     stemTris = stemTris(stemTris(:,3)<=stemHeight,:);
 end
-PlantTris = [PlantTris; stemTris]; % 把stem的放入到输出数组里
+PlantTris = [PlantTris; stemTris]; % put the stem into an array. 
 
 for i = 1:leafNum
 
     i
-    %首先，按照上下层给与不同的调整参数
+    % first, apply different adjust rates for bottom and up layers. 
     d = plantModel(plantModel(:,10) == i,:);
     if d(1,11) == 1 % bottom layer
         adj.leafWidthMultiply = adjustConfig.leafWidthMultiply.b;
@@ -42,10 +44,10 @@ for i = 1:leafNum
         error('layer ID should be 1 or 2');
     end
 
-    % 然后，对于每个叶片调节
-    vectorModel = plantModel(plantModel(:,10) == i, 1:9); % leaf i 的vector model。
+    % then, adjust each leaf. 
+    vectorModel = plantModel(plantModel(:,10) == i, 1:9); % leaf i vector model。
     [points, tris] = adjustLeafArchitecture (vectorModel, adj);
-    tris(:, 10) = i; tris(:,11) = d(1,11); % 补全10，11列的信息
+    tris(:, 10) = i; tris(:,11) = d(1,11); % add info of column 10, 11.
 % plot
 %     tri = tris;
 %     [row,col] = size(tri);
@@ -62,13 +64,13 @@ for i = 1:leafNum
 %     view(-70,15)
 %     hold on;
 
-    PlantTris = [PlantTris; tris]; % 仅保存面元即可
+    PlantTris = [PlantTris; tris]; % save the facets.
 end
 
-% 最后是调节叶片数
-aln = adjustConfig.leafNumberAdd; %调节叶片数
+% at last, adjust leaf number. 
+aln = adjustConfig.leafNumberAdd; % adjust leaf number.
 if aln ~= 0
-    indexVector = heteroMapping(leafNum+aln, leafNum); % 将当前的leafNum调节到目标的aln数
+    indexVector = heteroMapping(leafNum+aln, leafNum); % adjust current leafNum to the target aln number. 
     adjstep = stemHeight/length(indexVector)/2;
     % calculate the adjust values for every leaf from bottom to top
     adjustLeafBaseHeightVector = zeros(length(indexVector),1); % initial an zeros vector
@@ -91,7 +93,7 @@ if aln ~= 0
             end
         end
     end % calcualte the adjust values for every leaf from bottom to top
-    PlantTris = plantStructureAdjustLN(PlantTris, indexVector, adjustLeafBaseHeightVector); %调整叶数量
+    PlantTris = plantStructureAdjustLN(PlantTris, indexVector, adjustLeafBaseHeightVector); % adjust leaf number. 
 end
 
 end

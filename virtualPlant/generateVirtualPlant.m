@@ -53,7 +53,7 @@ for plantId = 1:4 % for every plant, maize 4 plants
         % leaf area
         LeafAreaModelA = sum (modelA(modelA(:,PlantID_ind)==plantId,leafLength_ind) .* modelA(modelA(:,PlantID_ind)==plantId,leafWidth_ind) * 0.7); %计算modelA的总叶面积，长*宽*0.7估算
         LeafAreaModelB = sum (modelB(modelB(:,PlantID_ind)==plantId,leafLength_ind) .* modelB(modelB(:,PlantID_ind)==plantId,leafWidth_ind) * 0.7); %计算modelA的总叶面积，长*宽*0.7估算
-        BAratio = LeafAreaModelB / LeafAreaModelA; %计算B/A的面积比值
+        BAratio = LeafAreaModelB / LeafAreaModelA; 
 
         modelA(modelA(:,PlantID_ind)==plantId,leafLength_ind) = modelA(modelA(:,PlantID_ind)==plantId,leafLength_ind).* sqrt(BAratio); %调整modelA的叶长
         modelA(modelA(:,PlantID_ind)==plantId,leafWidth_ind) = modelA(modelA(:,PlantID_ind)==plantId,leafWidth_ind).* sqrt(BAratio); %调整modelA的叶宽
@@ -104,9 +104,8 @@ for plantId = 1:4 % for every plant, maize 4 plants
                 modelA_with_B_trait = [modelA_with_B_trait; temp];
             end
 
-            % 针对点云模型，利用上述计算的调整叶片数之后的叶片index, indexVector2, 和调整之后重新计算的adjustLeafBaseHeightVector
-            % 调整输入的modelA_mesh，得到新模型。
-            modelA_mesh_out = plantStructureAdjustLN(modelA_mesh, indexVector2, adjustLeafBaseHeightVector); %调整叶数量
+
+            modelA_mesh_out = plantStructureAdjustLN(modelA_mesh, indexVector2, adjustLeafBaseHeightVector); % adjust leaf number
 
         end
 
@@ -150,7 +149,7 @@ for plantId = 1:4 % for every plant, maize 4 plants
 %              modelA(modelA(:,PlantID_ind)==plantId & modelA(:,TillerID_ind)==i & modelA(:,OrganID_ind)==j, targetTrait_ind)
 %              modelB(modelB(:,PlantID_ind)==plantId & modelB(:,TillerID_ind)==indexVector(i) & modelB(:,OrganID_ind)==indexVector2(j), targetTrait_ind)
 
-                % 将B的M文件的对应性状的参数替换到A里面
+                
                 modelA(modelA(:,PlantID_ind)==plantId & modelA(:,TillerID_ind)==i              & modelA(:,OrganID_ind)==j,               targetTrait_ind) = ...
                 modelB(modelB(:,PlantID_ind)==plantId & modelB(:,TillerID_ind)==indexVector(i) & modelB(:,OrganID_ind)==indexVector2(j), targetTrait_ind);
 
@@ -199,7 +198,7 @@ for plantId = 1:4 % for every plant, maize 4 plants
 
         end
 
-        % 因为是对于点云的模型，不能直接从M参数直接构建；而是用读入的modelA_mesh来调整出来的。所以和水稻的纯参数模型不一样。
+
         % adjust the single plant model. for those traits that not change
         % organ number, only changing organ size. 
         % modelA is the result of above calculation. 

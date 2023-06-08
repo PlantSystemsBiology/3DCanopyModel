@@ -4,7 +4,7 @@
 % adjustConfig.leafLengthMultiply
 % adjustConfig.leafAngleAdd
 % adjustConfig.leafCurvatureTo
-% adjustConfig.leafNumberTo,这个改变在单株模型中变化，本函数改变的是单个叶片的模型
+% adjustConfig.leafNumberTo, this is used in single plant model, current function is for single leaf adjustment. 
 
 function [points, tris_out] = adjustLeafArchitecture (vectorModel, adjustConfig)
 
@@ -19,10 +19,10 @@ aa = adjustConfig.leafAngleAdd;
 % from vectorModel to adjust leaf width and length
 % adjust leaf length
 if al~=1
-    vectorModel(:,1:3) = vectorModel(:,1:3)*al; % 调节叶长度
+    vectorModel(:,1:3) = vectorModel(:,1:3)*al; % adjust leaf length
 end
 if aw~=1
-    vectorModel(:,4:9) = vectorModel(:,4:9)*aw; % 调节叶宽度
+    vectorModel(:,4:9) = vectorModel(:,4:9)*aw; % adjust leaf width
 end
 %% convert vector to points
 
@@ -37,7 +37,6 @@ end
 ptu = pt(1:row,:) + vectorModel(:, 4:6);
 ptb = pt(1:row,:) + vectorModel(:, 7:9);
 % 
-% disp('QQQ')
 % figure(2);
 % scatter3(pt(:,1),pt(:,2),pt(:,3)); hold on;
 % scatter3(ptu(:,1),ptu(:,2),ptu(:,3),'red');
@@ -45,12 +44,12 @@ ptb = pt(1:row,:) + vectorModel(:, 7:9);
 
 %% adjust leaf curvature
 if ac~=0
-    % 首先，拉直叶片
+    % first, make the leaf straight
     turnAngleSave = zeros(row,1);
     rotationDegreeSave = zeros(row,1);
     turnAngleDirectionSave = zeros(row,1);
     for i=1:row
-        % 中线点，上边点，下边点分为三个数组，同步的旋转
+        % the points on mid-line and two leaf edages are rotated. 
 
         O_Pt = pt(i,1:3);
         T_Pt = pt(i+1,1:3);
@@ -76,17 +75,18 @@ if ac~=0
 %     figure(2);
 %     scatter3(pt(:,1),pt(:,2),pt(:,3));
 
-    % 然后，按照给定的弯曲LC弯折叶片1/3到3/3段，0-1/3段不变。
+    % then, change the leaf curvature as input. the curvature is adjusted from 1/3 to 3/3. 
+    % The parts between 0-1/3 is maintained. 
     turnAngleTargetLC = sum(turnAngleSave(round(row/3):end,:)) + ac; % unit: degree
-    turnLCstep = turnAngleTargetLC/round(row*2/3); % 调节1/3到3/3段每次的turnStep
+    turnLCstep = turnAngleTargetLC/round(row*2/3); % adjust leaf 1/3 ~ 3/3 segments, the turnLCstep is the angle for turning each leaf segment along the leaf.
     if turnLCstep<0
         turnLCstep = 0;
     end
     for i = row:-1:1
         if i >= round(row/3)
-            turnAngle = turnLCstep;       % 1/3到3/3段每次的turnStep
+            turnAngle = turnLCstep;       
         else
-            turnAngle = turnAngleSave(i); % 0/3到1/3段不变
+            turnAngle = turnAngleSave(i); % the leaf 0/3 ~ 1/3 segment maintained
         end
         rotationDegree = rotationDegreeSave(i);
         turnAngleDirection = turnAngleDirectionSave(i);
@@ -100,7 +100,7 @@ end
 %% adjust leaf angle
 [row_temp, ~]=size(pt);
 if row_temp<4
-    aa=0; % 如果pt行数太少，跳过aa调节
+    aa=0; % if row number of the pt matrix is too small, do not need the leaf angle adjustment. 
 end
 if aa~=0
     turnAngle = aa;
@@ -131,7 +131,7 @@ pt(:,1:3) = pt(:,1:3) + leafBase;
 ptu(:,1:3) = ptu(:,1:3) + leafBase;
 ptb(:,1:3) = ptb(:,1:3) + leafBase;
 
-points = [pt; ptu; ptb]; % 点云模型
+points = [pt; ptu; ptb]; % point cloud model
 
 %% convert to mesh model
 tris1 = [pt(1:row, :), pt(2:row+1, :), ptu(1:row, :)];
@@ -147,7 +147,7 @@ tris = [tris1; tris2; tris3; tris4];
 indzero1 = abs(sum(tris(:,1:3) - tris(:,4:6),2)) <= 0.01;
 indzero2 = abs(sum(tris(:,1:3) - tris(:,7:9),2)) <= 0.01;
 indzero3 = abs(sum(tris(:,4:6) - tris(:,7:9),2)) <= 0.01;
-tris_out = tris(~(indzero1|indzero2|indzero3), :); %去掉面积为0的点
+tris_out = tris(~(indzero1|indzero2|indzero3), :); % delete those 'facet' with area of zero.
 
 % convert to mesh model/end
 

@@ -11,23 +11,23 @@ Y = pos_t(:,2);
 Z = pos_t(:,3);
 
 if type == 1
-% X轴 为旋转轴
-        [theta,r,h] = cart2pol(Y,Z,X);    % X 方向为轴, -转换为柱坐标系,
+% X-axis rotate
+        [theta,r,h] = cart2pol(Y,Z,X);    % X-axis, rotate.
         theta = theta + degree/180*pi;     
-        [Y,Z,X] = pol2cart(theta,r,h);    % 转换回笛卡尔坐标系
+        [Y,Z,X] = pol2cart(theta,r,h);    % convert to X-Y-Z coordinates.
 
 elseif type == 2
-% Y轴 为旋转轴
-        [theta,r,h] = cart2pol(Z,X,Y);    % Y 方向为轴, -转换为柱坐标系,
+% Y-axis rotate
+        [theta,r,h] = cart2pol(Z,X,Y);    % Y-axis, rotate. 
         theta = theta + degree/180*pi;     
-        [Z,X,Y] = pol2cart(theta,r,h);    % 转换回笛卡尔坐标系
+        [Z,X,Y] = pol2cart(theta,r,h);    % convert to X-Y-Z coordinates.
 
 
 elseif type == 3
-% Z轴 为旋转轴
-        [theta,r,h] = cart2pol(X,Y,Z);    % Z 方向为轴, -转换为柱坐标系,
+% Z-axis rotate
+        [theta,r,h] = cart2pol(X,Y,Z);    % Z-axis, rotate.
         theta = theta + degree/180*pi;     
-        [X,Y,Z] = pol2cart(theta,r,h);    % 转换回笛卡尔坐标系
+        [X,Y,Z] = pol2cart(theta,r,h);    % convert to X-Y-Z coordinates
 
 
 else
